@@ -5,8 +5,33 @@ import PetBrowser from "./PetBrowser";
 
 function App() {
   const [pets, setPets] = useState([]);
-  const [filters, setFilters] = useState({ type: "all" });
+  const [filter, setFilter] = useState("all");
+  const url = filter === 'all' ? `http://localhost:3001/pets/` : `http://localhost:3001/pets/?type=${filter}`
+  const fetchPets = async () => {
+    const response = await fetch(url)
+    const data = await response.json();
+    setPets(data);
+  }
 
+  const updatePet = async (pet) => {
+    const response = await fetch(`http://localhost:3001/pets/${pet.id}`, {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ ...pet, isAdobted: true })
+    })
+
+    const data = await response.json();
+
+    const updatedPet = pets.map(arrayPet => {
+      if (arrayPet.id === pet.id) return data
+      else return arrayPet
+    })
+
+    setPets(updatedPet);
+  }
+  console.log(pets);
   return (
     <div className="ui container">
       <header>
@@ -15,10 +40,10 @@ function App() {
       <div className="ui container">
         <div className="ui grid">
           <div className="four wide column">
-            <Filters />
+            <Filters filter={filter} setFilter={setFilter} onFetchClick={fetchPets} />
           </div>
           <div className="twelve wide column">
-            <PetBrowser />
+            <PetBrowser pets={pets} onAdobtClick={updatePet} />
           </div>
         </div>
       </div>
